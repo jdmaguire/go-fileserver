@@ -714,7 +714,7 @@ func deleteFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// ignore errors
-	err = os.Remove(path)
+	err = os.RemoveAll(path)
 
 	if err != nil {
 		maybeLogMessage("CLIENT: %s ERROR DELETE for %s: %s", r.RemoteAddr, path, err.Error())
