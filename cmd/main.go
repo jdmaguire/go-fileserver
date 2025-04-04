@@ -313,9 +313,9 @@ func exists(path string) bool {
 	return true
 }
 
-func maybeLog(msg string, addr string, path string) {
+func maybeLog(format string, v ...string) {
 	if VERBOSE {
-		log.Printf(msg, addr, path)
+		log.Printf(format, v)
 	}
 }
 
@@ -699,13 +699,20 @@ func deleteFile(w http.ResponseWriter, r *http.Request) {
 	path := filepath.Clean(filepath.Join(FILE_PATH, dir, filename))
 
 	// Make sure file exists
-	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
+	_, err := os.Stat(path)
+	if errors.Is(err, os.ErrNotExist) {
 		maybeLog("CLIENT: %s DELETE NOT FOUND: %s\n", r.RemoteAddr, path)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+	} else if err != nil {
+		maybeLog("CLIENT: %s ERROR for %s: %s", r.RemoteAddr, path, err.Error())
 	}
 
 	// ignore errors
-	os.Remove(path)
+	err = os.Remove(path)
+
+	if err != nil {
+		maybeLog("CLIENT: %s ERROR DELETE for %s: %s", r.RemoteAddr, path, err.Error())
+	}
 
 	maybeLog("CLIENT: %s DELETED: %s\n", r.RemoteAddr, path)
 
