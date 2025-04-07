@@ -521,6 +521,11 @@ func viewDir(w http.ResponseWriter, r *http.Request) {
                     </tr>
                 </thead>
                 <tbody>
+					<tr>
+						<td>
+							<input type="hidden" id="directory" type="text" name="directory" value="{{ $.Directory }}">
+					 	</td>
+					</tr>
                     {{range .Files}}
                         <tr>
                             <td>
