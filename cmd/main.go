@@ -429,7 +429,7 @@ func getFile(w http.ResponseWriter, r *http.Request) {
 
 	keys, ok := r.URL.Query()["file"]
 	if !ok || len(keys[0]) < 1 {
-		log.Println("Url Param 'key' is missing")
+		log.Println("Url Param 'file' is missing")
 		redirectRoot(w, r)
 	}
 
@@ -466,97 +466,94 @@ the directory.
 func viewDir(w http.ResponseWriter, r *http.Request) {
 	// the HTML template to display files
 	htmltemp := `<!DOCTYPE html>
-	<html lang="en" dir="ltr">
-		<head>
-			<meta charset="utf-8">
-			<meta name="viewport"
-				content="width=device-width, initial-scale=1, shrink-to-fit=no">
-			<meta name="description" content="Simple file server">
-			<!-- prevent favicon requests -->
-			<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
-			<title>{{ .Title }}</title>
-			<style>
-				tbody tr:nth-child(odd) {
-					background-color: #eeeeee;
-			  	}
-				@media (min-width:960px) { 
-					.upload-form {
-						max-width: 40%;
-					}
-				}
-			</style>
-		</head>
-		<body>
-		<h2>{{.Title}}</h2>
-		<p>
-			<form enctype="multipart/form-data"
-				action="/upload"
-				method="POST"
-				class="upload-form">
-				<fieldset>
-					<legend>Upload new file/files</legend>
-					<input type="hidden" id="directory" type="text" name="directory" value="{{ .Directory }}">
-					<input type="file" placeholder="Filename" name="file-upload" required multiple>
-					<button type="submit">Upload</button>
-				</fieldset>
-			</form>
-		</p>
-		{{ if eq .Directory "/" }}
-			<p></p>
-		{{ else }}
-		<p>
-			<a href="/view?dir={{ .Parent }}">To Parent Directory</a>
-		</p>
-		{{ end }}
-		<p>
-		<table>
-			<thead>
-				<tr>
-					<th>Filename</th>
-					<th>Size</th>
-					<th>Mode</th>
-					<th>Last Modified</th>
-					<th>Delete</th>
-				</tr>
-			</thead>
-			<tbody>
-				{{range .Files}}
-					<tr>
-						<td>
-							{{ if .IsDir }}
-								{{ if eq $.Directory  "/" }}
-									<a href="/view?dir={{ .Name }}">{{ .Name }}/</a>
-								{{ else }}
-									<a href="/view?dir={{ $.Directory }}/{{ .Name }}">{{ .Name }}/</a>
-								{{ end }}
-							{{ else }}
-								{{ if eq $.Directory  "/" }}
-									<a download href="/get?file={{ .Name }}">{{ .Name }}</a>
-									
-								{{ else }}
-									<a download href="/get?file={{ $.Directory }}/{{ .Name }}">{{ .Name }}</a>
-								{{ end }}
-							{{ end }}
-						</td>
-						<td>{{ .Size }}</td>
-						<td>{{ .Mode }}</td>
-						<td>{{ .Date}}</td>
-						<td>
-							<form action="/delete" method="POST" class="form-example">
-								<div>
-									<input type="hidden" id="directory" type="text" name="directory" value="{{ $.Directory }}">
-									<input type="hidden" id="file" type="file" name="filename" value="{{ .Name }}">
-									<input type="submit" onclick="return confirm('Are you sure you want to delete {{ .Name }}?')" value="Delete">
-								</div>
-							</form>
-					  </td>
-					</tr>
-				{{ end }}
-			</tbody>
-		</table>
-		</p>
-		</body>
-	</html>`
+    <html lang="en" dir="ltr">
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport"
+                content="width=device-width, initial-scale=1, shrink-to-fit=no">
+            <meta name="description" content="Simple file server">
+            <!-- prevent favicon requests -->
+            <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
+            <title>{{ .Title }}</title>
+            <style>
+                tbody tr:nth-child(odd) {
+                    background-color: #eeeeee;
+                }
+                @media (min-width:960px) { 
+                    .upload-form {
+                        max-width: 40%;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+        <h2>{{.Title}}</h2>
+        <p>
+            <form enctype="multipart/form-data"
+                action="/upload"
+                method="POST"
+                class="upload-form">
+                <fieldset>
+                    <legend>Upload new file/files</legend>
+                    <input type="hidden" id="directory" type="text" name="directory" value="{{ .Directory }}">
+                    <input type="file" placeholder="Filename" name="file-upload" required multiple>
+                    <button type="submit">Upload</button>
+                </fieldset>
+            </form>
+        </p>
+        {{ if eq .Directory "/" }}
+            <p></p>
+        {{ else }}
+        <p>
+            <a href="/view?dir={{ .Parent }}">To Parent Directory</a>
+        </p>
+        {{ end }}
+        <p>
+        <form action="/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete the selected files?')">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Select</th>
+                        <th>Filename</th>
+                        <th>Size</th>
+                        <th>Mode</th>
+                        <th>Last Modified</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .Files}}
+                        <tr>
+                            <td>
+                                <input type="checkbox" name="filenames" value="{{ .Name }}">
+                            </td>
+                            <td>
+                                {{ if .IsDir }}
+                                    {{ if eq $.Directory  "/" }}
+                                        <a href="/view?dir={{ .Name }}">{{ .Name }}/</a>
+                                    {{ else }}
+                                        <a href="/view?dir={{ $.Directory }}/{{ .Name }}">{{ .Name }}/</a>
+                                    {{ end }}
+                                {{ else }}
+                                    {{ if eq $.Directory  "/" }}
+                                        <a download href="/get?file={{ .Name }}">{{ .Name }}</a>
+                                        
+                                    {{ else }}
+                                        <a download href="/get?file={{ $.Directory }}/{{ .Name }}">{{ .Name }}</a>
+                                    {{ end }}
+                                {{ end }}
+                            </td>
+                            <td>{{ .Size }}</td>
+                            <td>{{ .Mode }}</td>
+                            <td>{{ .Date}}</td>
+                        </tr>
+                    {{ end }}
+                </tbody>
+            </table>
+            <button type="submit">Delete Selected</button>
+        </form>
+        </p>
+        </body>
+    </html>`
 
 	// check basic auth if enabled
 	if !checkAuth(w, r) {
@@ -569,7 +566,7 @@ func viewDir(w http.ResponseWriter, r *http.Request) {
 	keys, ok := r.URL.Query()["dir"]
 
 	if !ok || len(keys[0]) < 1 {
-		log.Println("Url Param 'key' is missing")
+		log.Println("Url Param 'dir' is missing")
 		redirectRoot(w, r)
 		return
 	}
@@ -612,7 +609,8 @@ func viewDir(w http.ResponseWriter, r *http.Request) {
 	context := Context{title, dir, parent, f}
 	templates := template.Must(template.New("foo").Parse(htmltemp))
 
-	if err := templates.Execute(w, context); err != nil {
+	err = templates.Execute(w, context)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -686,43 +684,56 @@ func deleteFile(w http.ResponseWriter, r *http.Request) {
 		authFail(w, r)
 		return
 	}
-	// Get the name of the file to delete
-	filename := r.FormValue("filename")
-	if filename == "" {
-		http.Error(w, "missing form value", http.StatusInternalServerError)
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	if strings.Contains(filename, "..") {
-		// prevent path traversal deletion
-		redirectRoot(w, r)
+	// prevents a panic if empty
+	if r.PostForm == nil {
 		return
 	}
 
-	// Get the directory to delete file from
-	dir := r.FormValue("directory")
-
-	// build path to the file
-	path := filepath.Clean(filepath.Join(FILE_PATH, dir, filename))
-
-	// Make sure file exists
-	_, err := os.Stat(path)
-	if errors.Is(err, os.ErrNotExist) {
-		maybeLog("CLIENT: %s DELETE NOT FOUND: %s\n", r.RemoteAddr, path)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	} else if err != nil {
-		maybeLogMessage("CLIENT: %s ERROR for %s: %s", r.RemoteAddr, path, err.Error())
+	// Get the names of the files to delete
+	filenames := r.PostForm["filenames"]
+	if len(filenames) == 0 {
+		http.Error(w, "missing form values", http.StatusInternalServerError)
+		return
 	}
 
-	// ignore errors
-	err = os.RemoveAll(path)
+	for _, filename := range filenames {
+		if strings.Contains(filename, "..") {
+			// prevent path traversal deletion
+			redirectRoot(w, r)
+			return
+		}
 
-	if err != nil {
-		maybeLogMessage("CLIENT: %s ERROR DELETE for %s: %s", r.RemoteAddr, path, err.Error())
+		// Get the directory to delete files from
+		dir := r.FormValue("directory")
+
+		// build path to the file
+		path := filepath.Clean(filepath.Join(FILE_PATH, dir, filename))
+
+		// Make sure file exists
+		_, err := os.Stat(path)
+		if errors.Is(err, os.ErrNotExist) {
+			maybeLog("CLIENT: %s DELETE NOT FOUND: %s\n", r.RemoteAddr, path)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		} else if err != nil {
+			maybeLogMessage("CLIENT: %s ERROR for %s: %s", r.RemoteAddr, path, err.Error())
+		}
+
+		// ignore errors
+		err = os.RemoveAll(path)
+		if err != nil {
+			maybeLogMessage("CLIENT: %s ERROR DELETE for %s: %s", r.RemoteAddr, path, err.Error())
+		}
+
+		maybeLog("CLIENT: %s DELETED: %s\n", r.RemoteAddr, path)
 	}
-
-	maybeLog("CLIENT: %s DELETED: %s\n", r.RemoteAddr, path)
 
 	// reload the current page
+	dir := r.FormValue("directory")
 	http.Redirect(w, r, "view?dir="+dir, http.StatusFound)
 }
 
